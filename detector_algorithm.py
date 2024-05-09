@@ -2,15 +2,14 @@ import time
 import cv2 as cv
 import mediapipe as mp
 import numpy as np
+import serial
 
 mp_face_detection = mp.solutions.face_detection
+arduino = serial.Serial(port='COM4', baudrate=115200, timeout=.1)
 cap = cv.VideoCapture(0)
 with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5) as face_detector:
-    frame_counter = 0
-    fonts = cv.FONT_HERSHEY_PLAIN
     start_time = time.time()
     while True:
-        frame_counter += 1
         ret, frame = cap.read()
         if ret is False:
             break
@@ -36,13 +35,12 @@ with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence
                     cv.circle(frame, p, 4, (255, 255, 255), 2)
                     cv.circle(frame, p, 2, (0, 0, 0), -1)
 
-                posx = int(face.location_data.relative_bounding_box.xmin * 100)
-                posy = int(face.location_data.relative_bounding_box.ymin * 100)
-                print(posx)
-                print(posy)
+                posx = str(round(face.location_data.relative_bounding_box.xmin * 100))
+                posy = str(round(face.location_data.relative_bounding_box.ymin * 100))
+                arduino.write(bytes(posx, 'utf-8')) 
+                time.sleep(0.005)
+                arduino.write(bytes(posy, 'utf-8'))
         
-
-        fps = frame_counter / (time.time() - start_time)
         cv.imshow("frame", frame)
         key = cv.waitKey(1)
         if key == ord("q"):
