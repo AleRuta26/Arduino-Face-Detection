@@ -36,8 +36,8 @@ with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence
                     cv.circle(frame, p, 4, (255, 255, 255), 2)
                     cv.circle(frame, p, 2, (0, 0, 0), -1)
 
-                posx = int(face.location_data.relative_bounding_box.xmin * 10)
-                posy = int(face.location_data.relative_bounding_box.ymin * 10)
+                posx = int(face.location_data.relative_bounding_box.xmin * 100)
+                posy = int(face.location_data.relative_bounding_box.ymin * 100)
                 print(posx)
                 print(posy)
         
