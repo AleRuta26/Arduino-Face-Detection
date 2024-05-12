@@ -2,10 +2,10 @@ import time
 import cv2 as cv
 import mediapipe as mp
 import numpy as np
-#import serial
+import serial
 
 mp_face_detection = mp.solutions.face_detection
-#arduino = serial.Serial(port='COM4', baudrate=115200, timeout=.1)
+arduino = serial.Serial(port='COM4', baudrate=9600, timeout=0.1)
 cap = cv.VideoCapture(0)
 counterSend = 0
 send = False
@@ -49,20 +49,18 @@ with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence
             if posy < 0:
                 posy = -posy
 
-            posx = str(posx)
-            posy = str(posy)
+            pos = str(posx)+","+str(posy)
 
-            if counterSend % 20 == 0:
+            if counterSend % 30 == 0:
                 send = True
             
             if send:
-                #arduino.write(bytes(posx, 'utf-8')) 
-                #arduino.write(bytes(posy, 'utf-8'))
+                arduino.write(bytes(pos, 'utf-8'))
                 print(posx)
-                time.sleep(0.05)
                 print(posy)
                 print("------")
-                send = False  # Reset the send flag after sending
+                send = False
+                print(arduino.readline())
 
             counterSend += 1
 
