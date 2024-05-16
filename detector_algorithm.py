@@ -1,3 +1,4 @@
+
 import time
 import cv2 as cv
 import mediapipe as mp
@@ -5,9 +6,10 @@ import numpy as np
 import serial
 
 mp_face_detection = mp.solutions.face_detection
-arduino = serial.Serial(port='COM4', baudrate=9600, timeout=0.1)
+arduino = serial.Serial(port='COM4', baudrate=460800, timeout=0.1)
 cap = cv.VideoCapture(0)
 counterSend = 0
+counter2 = 0
 send = False
 
 with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5) as face_detector:
@@ -20,10 +22,12 @@ with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence
 
         results = face_detector.process(rgb_frame)
         frame_height, frame_width, _ = frame.shape
-
+        
+        
         if results.detections:
             # Prendi solo il primo volto rilevato
             face = results.detections[0]
+            
 
             face_react = np.multiply(
                 [
@@ -40,30 +44,34 @@ with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence
             for p in key_points_coords:
                 cv.circle(frame, p, 4, (255, 255, 255), 2)
                 cv.circle(frame, p, 2, (0, 0, 0), -1)
+            posy = round(face.location_data.relative_bounding_box.ymin*100+(face.location_data.relative_bounding_box.height*100)/2)
+            posx = round(face.location_data.relative_bounding_box.xmin*100+(face.location_data.relative_bounding_box.width*100)/2)
+            
+            if posx<0:
+                posx*=-1
+            if posy<0:
+                posy*=-1
+            pos = str(posx)+","+str(posy)+"\n"
 
-            posx = round(face.location_data.relative_bounding_box.xmin * 100)
-            posy = round(face.location_data.relative_bounding_box.ymin * 100)
-
-            if posx < 0:
-                posx = -posx
-            if posy < 0:
-                posy = -posy
-
-            pos = str(posx)+","+str(posy)
-
-            if counterSend % 30 == 0:
+            if counterSend % 2 == 0:
                 send = True
+            
             
             if send:
                 arduino.write(bytes(pos, 'utf-8'))
+                send = False
                 print(posx)
                 print(posy)
                 print("------")
-                send = False
-                print(arduino.readline())
-
+                
+                
+            
             counterSend += 1
-
+        else:
+            if counter2 % 2==0:
+                arduino.write(bytes("-1,-1\n", 'utf-8'))
+            counter2+=1
+        
         cv.imshow("frame", frame)
         key = cv.waitKey(1)
         if key == ord('q'):
